@@ -50,6 +50,13 @@ router.post("/login",async (req,res)=>{
         const {password,...info}=user._doc      // separating password and other info (storing all info in "info" except password)
         // _doc is an internal property that stores the raw MongoDB dat        
         
+        // Set token as HTTP-only cookie
+        res.cookie("accessToken", token, {
+            httpOnly: true, // Prevents client-side access (security)
+            secure: true,   // Required for HTTPS (Render forces HTTPS)
+            sameSite: "none", // Needed for cross-site requests
+        });
+
         res.status(200).json({info,token: token})            // this is token (jwt)
         // res.json({token,userId: user._id})
         // res.status(200).json(user);
