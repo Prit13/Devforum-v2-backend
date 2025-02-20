@@ -51,7 +51,7 @@ router.post("/login",async (req,res)=>{
         // _doc is an internal property that stores the raw MongoDB dat        
         
         // Set token as HTTP-only cookie
-        res.cookie("accessToken", token, {
+        res.cookie("token", token, {
             httpOnly: true, // Prevents client-side access (security)
             secure: true,   // Required for HTTPS (Render forces HTTPS)
             sameSite: "none", // Needed for cross-site requests
