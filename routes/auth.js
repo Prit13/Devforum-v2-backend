@@ -19,7 +19,7 @@ router.post("/register",async(req,res)=>{
         const hashedPassword=await bcrypt.hashSync(password,salt)
         const newUser=new User({username,email,password:hashedPassword})
         const savedUser=await newUser.save()
-        console.log(savedUser);
+        // console.log(savedUser);
         res.status(200).json(savedUser)
 
     }
@@ -75,17 +75,40 @@ router.get("/logout",async (req,res)=>{
 
 //REFETCH USER      to avoid automatically logout after refreshing the page
 router.get("/refetch", (req,res)=>{
-    const token=req.cookies.token
-    // console.log(req.cookies.token);
-    jwt.verify(token,process.env.SECRET,{},async (err,data)=>{
-        // console.log("refetch called")
-        // console.log(data);
+    // const token=req.cookies.token
+    // // console.log(req.cookies.token);
+    // jwt.verify(token,process.env.SECRET,{},async (err,data)=>{
+    //     // console.log("refetch called")
+    //     // console.log(data);
 
-        if(err){
-            return res.status(404).json(err)
+    //     if(err){
+    //         return res.status(404).json(err)
+    //     }
+    //     res.status(200).json(data)
+    // })
+    const token = req.cookies.token;
+    // console.log(req.cookies)
+    // const token =req.headers.authorization
+    if (!token) {
+        return res.status(401).json({ message: "No token found" });
+    }
+
+    jwt.verify(token, process.env.SECRET, {}, async (err, decodedData) => {
+        if (err) {
+            return res.status(401).json({ message: "Invalid token" });
         }
-        res.status(200).json(data)
-    })
+
+        try {
+            const user = await User.findById(decodedData._id).select("-password"); // Exclude password
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.status(200).json({ info: user, token }); // Send both user info & token
+        } catch (error) {
+            res.status(500).json({ message: "Server error" });
+        }
+    });
 })
 
 

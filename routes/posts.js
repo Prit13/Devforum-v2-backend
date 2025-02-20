@@ -69,7 +69,7 @@ router.put("/:id",verifyToken,async (req,res)=>{
     try{
        
         const updatedPost=await Post.findByIdAndUpdate(req.params.id,{$set:req.body},{new:true})
-        console.log(updatedPost)
+        // console.log(updatedPost)
         res.status(200).json(updatedPost)
 
     }
@@ -190,7 +190,24 @@ router.get("/image/:filename", async (req, res) => {
 });
 
 
+// toggle status i.e open of the post
+router.put("/:id/toggle-status", verifyToken, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ message: "Post not found" });
 
+        if (post.userId !== req.user.id) {
+            return res.status(403).json({ message: "You can only update your post" });
+        }
+
+        post.open = !post.open; // Toggle open status
+        await post.save();
+
+        res.status(200).json({ message: "Post status updated", open: post.open });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
 
 
 module.exports=router

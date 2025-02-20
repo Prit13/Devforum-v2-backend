@@ -7,25 +7,50 @@ const Comment=require('../models/Comment')
 const verifyToken = require('../verifyToken')
 
 
-//UPDATE        http://localhost:5000/api/users/651fc2d445450fe6ce5d3cf3 i.e _id
+//UPDATE USER     http://localhost:5000/api/users/651fc2d445450fe6ce5d3cf3 i.e _id
 //              need username,password,email in body 
-router.put("/:id",verifyToken,async (req,res)=>{
-    try{
-        // console.log(req.body);
-        
-        if(req.body.password){
-            const salt=await bcrypt.genSalt(10)
-            req.body.password=await bcrypt.hashSync(req.body.password,salt)
+router.put("/:id", verifyToken, async (req, res) => {
+    try {
+        if (req.body.password) {
+            const salt = await bcrypt.genSalt(10);
+            req.body.password = await bcrypt.hashSync(req.body.password, salt);
         }
-        const updatedUser=await User.findByIdAndUpdate(req.params.id,{$set:req.body},{new:true})
-        // console.log("Updated User:", updatedUser);
-        res.status(200).json(updatedUser)
 
+        // Find the user before updating
+        const existingUser = await User.findById(req.params.id);
+        // console.log(existingUser);
+
+        if (!existingUser) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Check if username is being updated
+        const isUsernameUpdated = req.body.username && req.body.username !== existingUser.username;
+
+        // Update the User schema
+        const updatedUser = await User.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        );
+
+        // If username was updated, also update all posts with the new username
+        if (isUsernameUpdated) {
+            const updatePosts = await Post.updateMany(
+                { userId: req.params.id },  // Match posts by userId instead of username
+                { $set: { username: req.body.username } } // Update the username in posts
+            );
+            // console.log(`Updated ${updatePosts.modifiedCount} posts.`);
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json(err);
     }
-    catch(err){
-        res.status(500).json(err)
-    }
-})
+});
+
+
 
 
 //DELETE                 need _id in endpoint of route
