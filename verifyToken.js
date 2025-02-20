@@ -28,7 +28,7 @@ const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-        return res.status(401).json("You are not authenticated ding ding!");
+        return res.status(401).json("You are not authenticated!");
     }
 
     const token = authHeader; // If you're not using "Bearer <token>", no need to split
