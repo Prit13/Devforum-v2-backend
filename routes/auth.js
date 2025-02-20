@@ -94,7 +94,7 @@ router.get("/refetch", (req,res)=>{
     //     res.status(200).json(data)
     // })
     const token = req.cookies.token;
-    console.log(req.cookies)
+    // console.log(req.cookies)
     // const token =req.headers.authorization
     if (!token) {
         return res.status(401).json({ message: "No token found" });
